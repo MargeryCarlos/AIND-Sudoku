@@ -1,5 +1,5 @@
 ## Note from Margery
-This readme is the instructions to Udacity's project from their AI nanodegree program that I already completed. If you want to follow their instructions here you can, although my answers are already in this repo's solution.py so you might want to go to Udacity's repo and start from there instead.  You can find their repo [here](https://github.com/udacity/AIND-Sudoku) if you would like to clone the original project and complete it yourself. 
+This readme includes the instructions to Udacity's project from their AI nanodegree program that I already completed. If you want to follow their instructions here you can, although my answers are already in this repo's solution.py so you might want to go to Udacity's repo and start from there instead.  You can find their repo [here](https://github.com/udacity/AIND-Sudoku) if you would like to clone the original project and complete it yourself. 
 
 # Solve Sudoku with AI
 
