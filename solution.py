@@ -1,14 +1,21 @@
 
 from utils import *
-
+import copy
 
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
 unitlist = row_units + column_units + square_units
 
-# TODO: Update the unit list to add the new diagonal units
-unitlist = unitlist
+# DONE: Update the unit list to add the new diagonal units
+# Add diagonal units:
+def diag(A,B):
+    diags = [A[x] + B[x] for x in range(len(A))]
+    return diags
+diag_units = [diag(rows,cols), diag(rows, cols[::-1])]
+
+# Update unit list with new diagonal units:
+unitlist = unitlist + diag_units
 
 
 # Must be called after all units (including diagonals) are added to the unitlist
@@ -53,8 +60,36 @@ def naked_twins(values):
     Pseudocode for this algorithm on github:
     https://github.com/udacity/artificial-intelligence/blob/master/Projects/1_Sudoku/pseudocode.md
     """
-    # TODO: Implement this function!
-    raise NotImplementedError
+    # DONE: Implement this function!
+    
+    # Find values of length 2:
+    # (find values where both values of boxA and boxB have only 2 feasible digits)
+    two_vals = [box for box in values if len(values[box]) == 2]
+    
+    # Find the pairs of naked twins within those length 2 values:
+    pairs = []
+    # for each boxA in values do
+    for boxA in two_vals: 
+    #   for each boxB of PEERS(boxA) do
+        for boxB in peers[boxA]:
+    #       if both values[boxA] and values[boxB] exactly match do
+            if sorted(values[boxA]) == sorted(values[boxB]): # if they are twins
+                pairs.append( (boxA,boxB) )  # add to the twin pairs list
+    
+    for twins in pairs:
+        peersA = peers[twins[0]]   # peers[boxA]
+        peersB = peers[twins[1]]   # peers[boxB]
+        intersectAB = set(peersA).intersection(peersB)
+    #   for each peer of INTERSECTION(PEERS[boxA], PEERS[boxB]) do
+        for peer in intersectAB:
+    #   for each digit of values[boxA] do
+            for digit in values[twins[0]]:
+    #           remove digit from out[peer]
+                values[peer] = values[peer].replace(digit,'')
+    # return out 
+    return values
+
+    #raise NotImplementedError
 
 
 def eliminate(values):
@@ -73,8 +108,16 @@ def eliminate(values):
     dict
         The values dictionary with the assigned values eliminated from peers
     """
-    # TODO: Copy your code from the classroom to complete this function
-    raise NotImplementedError
+    # DONE: Copy your code from the classroom to complete this function
+    solved_values = [box for box in values.keys() if len(values[box]) == 1]
+    
+    for box in solved_values:
+        val = values[box]
+        for peer in peers[box]:
+            values[peer] = values[peer].replace(val,'')
+    
+    return values
+    #raise NotImplementedError
 
 
 def only_choice(values):
@@ -97,8 +140,15 @@ def only_choice(values):
     -----
     You should be able to complete this function by copying your code from the classroom
     """
-    # TODO: Copy your code from the classroom to complete this function
-    raise NotImplementedError
+    # DONE: Copy your code from the classroom to complete this function
+    for unit in unitlist:
+        for dig in '123456789':
+            dspots = [box for box in unit if dig in values[box]]
+            if len(dspots) == 1:
+                values[dspots[0]] = dig
+            
+    return values
+    #raise NotImplementedError
 
 
 def reduce_puzzle(values):
@@ -115,8 +165,32 @@ def reduce_puzzle(values):
         The values dictionary after continued application of the constraint strategies
         no longer produces any changes, or False if the puzzle is unsolvable 
     """
-    # TODO: Copy your code from the classroom and modify it to complete this function
-    raise NotImplementedError
+    # DONE: Copy your code from the classroom and modify it to complete this function
+    # Note about "while not stalled": "not" did not work with my IDE/platform
+    stalled = False
+    while stalled == False:
+        # Check how many boxes have a determined value
+        solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
+
+        # Your code here: Use the Eliminate Strategy
+        values = eliminate(values)
+        # Your code here: Use the Only Choice Strategy
+        values = only_choice(values)
+
+        # Naked Twins Strategy
+        #### 
+        values = naked_twins(values)
+
+        # Check how many boxes have a determined value, to compare
+        solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
+        # If no new values were added, stop the loop.
+        stalled = solved_values_before == solved_values_after
+        # Sanity check, return False if there is a box with zero available values:
+        if len([box for box in values.keys() if len(values[box]) == 0]):
+            return False
+    return values
+
+    #raise NotImplementedError
 
 
 def search(values):
@@ -138,8 +212,32 @@ def search(values):
     You should be able to complete this function by copying your code from the classroom
     and extending it to call the naked twins strategy.
     """
-    # TODO: Copy your code from the classroom to complete this function
-    raise NotImplementedError
+    # DONE: Copy your code from the classroom to complete this function
+    # First, reduce the puzzle using the previous function
+    values = reduce_puzzle(values)
+    if values is False:
+        return False
+    if all(len(values[s]) == 1 for s in boxes): 
+        return values
+    
+    # Choose one of the unfilled squares with the fewest possibilities
+    m, ms = 10, 'A10' # longest length to beat, arbitrary s
+    for s in boxes:
+        if len(values[s]) > 1:
+            if len(values[s]) < m:
+                m, ms = len(values[s]), s
+    n, s = m, ms
+    #print(n,s)
+
+    # Now use recursion to solve each one of the resulting sudokus, 
+    # and if one returns a value (not False), return that answer!
+    for val in values[s]:
+        new_sudoku = values.copy()
+        new_sudoku[s] = val
+        attempt = search(new_sudoku)
+        if attempt:
+            return attempt
+    #raise NotImplementedError
 
 
 def solve(grid):
