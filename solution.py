@@ -59,6 +59,18 @@ def naked_twins(values):
     --------
     Pseudocode for this algorithm on github:
     https://github.com/udacity/artificial-intelligence/blob/master/Projects/1_Sudoku/pseudocode.md
+
+    Note: Pseudocode for easier reference
+    function NakedTwins(values) returns a dict mapping from Sudoku box names to a list of feasible values
+        out <- copy(values) /* make a deep copy */
+        for each boxA in values do
+            for each boxB of PEERS(boxA) do
+                if both values[boxA] and values[boxB] exactly match and have only two feasible digits do
+                    for each peer of INTERSECTION( PEERS(boxA), PEERS(boxB) ) do
+                        for each digit of values[boxA] do
+                            remove digit f from out[peer]
+        return out
+
     """
     # DONE: Implement this function!
     
@@ -68,25 +80,21 @@ def naked_twins(values):
     
     # Find the pairs of naked twins within those length 2 values:
     pairs = []
-    # for each boxA in values do
     for boxA in two_vals: 
-    #   for each boxB of PEERS(boxA) do
         for boxB in peers[boxA]:
-    #       if both values[boxA] and values[boxB] exactly match do
             if sorted(values[boxA]) == sorted(values[boxB]): # if they are twins
                 pairs.append( (boxA,boxB) )  # add to the twin pairs list
     
     for twins in pairs:
         peersA = peers[twins[0]]   # peers[boxA]
         peersB = peers[twins[1]]   # peers[boxB]
+        # Find intersection of peers[boxA] and peers[boxB]:
         intersectAB = set(peersA).intersection(peersB)
-    #   for each peer of INTERSECTION(PEERS[boxA], PEERS[boxB]) do
         for peer in intersectAB:
-    #   for each digit of values[boxA] do
             for digit in values[twins[0]]:
-    #           remove digit from out[peer]
+                # Remove digit from out[peer]:
                 values[peer] = values[peer].replace(digit,'')
-    # return out 
+    # Return out: 
     return values
 
     #raise NotImplementedError
@@ -178,7 +186,6 @@ def reduce_puzzle(values):
         values = only_choice(values)
 
         # Naked Twins Strategy
-        #### 
         values = naked_twins(values)
 
         # Check how many boxes have a determined value, to compare
@@ -227,7 +234,6 @@ def search(values):
             if len(values[s]) < m:
                 m, ms = len(values[s]), s
     n, s = m, ms
-    #print(n,s)
 
     # Now use recursion to solve each one of the resulting sudokus, 
     # and if one returns a value (not False), return that answer!
